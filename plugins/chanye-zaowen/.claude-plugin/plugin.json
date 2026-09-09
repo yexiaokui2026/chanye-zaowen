@@ -1,0 +1,9 @@
+{
+  "name": "chanye-zaowen",
+  "description": "制作产业朝闻：抓取核验五栏产业新闻，输出HTML、完整源码和新闻来源链接核查表。",
+  "version": "1.2.0",
+  "author": {
+    "name": "产业朝闻"
+  },
+  "license": "MIT"
+}
