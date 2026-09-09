@@ -1,0 +1,3 @@
+display_name: 产业朝闻
+short_description: 抓取核验产业新闻，输出公众号HTML和原链接核查表。
+default_prompt: 帮我制作指定日期的产业朝闻，按既定标准抓取、筛选并核验新闻，输出可复制到135编辑器的公众号排版HTML和原链接核查表。

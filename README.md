@@ -4,7 +4,11 @@
 
 ## 安装
 
-将本仓库上传到GitHub后，在Claude Code中执行：
+本仓库同时提供 Claude 插件入口、通用 Skill 目录和 WorkBuddy 导入包。不同 AI 平台使用同一份 `SKILL.md` 和配套资源，不需要重新编写 Skill。
+
+### Claude Code
+
+将本仓库上传到 GitHub 后执行：
 
 ```text
 /plugin marketplace add 你的GitHub用户名/你的仓库名
@@ -15,6 +19,26 @@
 
 ```text
 /chanye-zaowen:chanye-zaowen 制作9月10日的产业朝闻
+```
+
+### WorkBuddy
+
+下载 `dist/chanye-zaowen-workbuddy-v1.2.0.zip`，在 WorkBuddy 的“添加技能”中导入这个 zip。压缩包内的顶层目录是 `chanye-zaowen/`，包含 `SKILL.md`、`references/`、`scripts/` 和 `assets/`。
+
+### 其他支持通用 Skill 的 AI
+
+使用 `skills/chanye-zaowen/` 作为 Skill 目录，入口文件是其中的 `SKILL.md`。保留同级的 `references/`、`scripts/` 和 `assets/`，不要只复制单独的 Markdown 文件。
+
+通用 Skill 源码位于：
+
+```text
+skills/chanye-zaowen/
+```
+
+WorkBuddy 导入包位于：
+
+```text
+dist/chanye-zaowen-workbuddy-v1.2.0.zip
 ```
 
 ## 本地测试
