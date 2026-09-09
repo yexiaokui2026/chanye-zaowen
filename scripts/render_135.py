@@ -9,6 +9,9 @@ from pathlib import Path
 
 CATEGORY_ORDER = ["热点资讯", "国际资讯", "国内资讯", "企业动态", "宏观政策"]
 MINIMUM_COUNTS = dict(zip(CATEGORY_ORDER, (3, 3, 4, 6, 3)))
+AGGREGATOR_HOSTS = ('cls.cn', 'chinastarmarket.cn')
+MAX_AGGREGATOR_SHARE = 0.5
+MIN_INDEPENDENT_HOSTS = 3
 CARD_RE = re.compile(
     r'\s*<section style="display:block;width:auto;margin:0 0 18px 0;padding:18px 20px 20px;'
     r'background:#f8fafd;border:1px solid #e7ecf3;border-radius:4px;box-shadow:0 10px 24px '
@@ -72,13 +75,28 @@ def validate_item(category, item):
     if URL_RE.search(str(item["summary"])):
         raise ValueError(f"{category}《{item['title']}》摘要中含网址；网址只能进入核查表")
     parse_news_time(item["published_at"])
+    source = str(item["source"]).strip()
+    summary = str(item["summary"]).strip()
+    if any(token in source for token in ("转引", "转载", "来源", "据报", "（", "）", "(", ")", "【", "】")):
+        raise ValueError(f"{category}《{item['title']}》来源标签必须只写发布者名称，例如：财联社；转引关系写入核查备注")
+    if "【来源】" in summary or re.search(r"【[^】]+】", summary):
+        raise ValueError(f"{category}《{item['title']}》摘要中已有来源标签；正文来源只能由渲染器统一追加一次")
+
+def is_in_default_window(published_at, publish_date, allow_supplement=True):
+    dt = parse_news_time(published_at)
+    target = (publish_date - timedelta(days=1)).date()
+    if dt.date() == target:
+        return True
+    supplement = target - timedelta(days=1)
+    return allow_supplement and dt.date() == supplement and dt.hour >= 18
 
 
-def validate_selection(items_by_category):
+def validate_selection(items_by_category, publish_date=None):
     if not isinstance(items_by_category, dict):
         raise ValueError('Input must contain an items object')
     seen_urls = set()
     seen_titles = set()
+    all_items = []
     for category, minimum in MINIMUM_COUNTS.items():
         items = items_by_category.get(category)
         if not isinstance(items, list) or len(items) < minimum:
@@ -86,6 +104,15 @@ def validate_selection(items_by_category):
             raise ValueError(f'{category}: {actual} items; minimum is {minimum}; no upper limit')
         for item in items:
             validate_item(category, item)
+            if publish_date and not is_in_default_window(item["published_at"], publish_date, allow_supplement=category != "宏观政策"):
+                expected = (publish_date - timedelta(days=1)).strftime("%Y-%m-%d")
+                raise ValueError(f"{category}《{item['title']}》发布时间超出默认窗口；默认目标新闻日为 {expected}")
+            if publish_date and category == "宏观政策":
+                macro_date = parse_news_time(item["published_at"]).date()
+                expected = (publish_date - timedelta(days=1)).date()
+                if macro_date != expected:
+                    raise ValueError(f"宏观政策《{item['title']}》必须使用目标新闻日 {expected} 的政策，不能使用更早日期")
+            all_items.append(item)
             url = str(item['url']).strip()
             host = (urlparse(url).hostname or '').lower()
             if not host:
@@ -100,7 +127,14 @@ def validate_selection(items_by_category):
                 reviewed_official = item.get('official_source') is True and str(item.get('note') or '').strip()
                 if not official_host and not reviewed_official:
                     raise ValueError(f'Macro story needs a verified official website: {title}')
-
+    hosts = Counter((urlparse(str(item["url"])).hostname or "").lower().removeprefix("www.") for item in all_items)
+    aggregators = sum(count for host, count in hosts.items() if host in AGGREGATOR_HOSTS or host.endswith((".cls.cn", ".chinastarmarket.cn")))
+    independent_hosts = sum(1 for host in hosts if host not in AGGREGATOR_HOSTS and not host.endswith((".cls.cn", ".chinastarmarket.cn")))
+    total = len(all_items)
+    if total and aggregators / total > MAX_AGGREGATOR_SHARE:
+        raise ValueError(f"来源过度集中：财联社/科创板日报承载 {aggregators}/{total} 条；必须继续补充其他可靠来源")
+    if independent_hosts < MIN_INDEPENDENT_HOSTS:
+        raise ValueError(f"来源过于单一：除财联社/科创板日报外只有 {independent_hosts} 个独立承载域名，至少需要 {MIN_INDEPENDENT_HOSTS} 个")
 
 def source_distribution(items_by_category):
     hosts = Counter()
@@ -161,7 +195,7 @@ def replace_category_cards(template, category_index, items):
 
 
 def render_html(template, data, publish_date):
-    validate_selection(data.get('items') or data.get('selected'))
+    validate_selection(data.get('items') or data.get('selected'), publish_date)
     items_by_category = data.get("items") or data.get("selected")
     date_text = publish_date.strftime("%Y.%m.%d")
     weekday = WEEKDAYS[publish_date.weekday()]
@@ -235,3 +269,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
