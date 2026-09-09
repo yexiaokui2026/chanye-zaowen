@@ -1,0 +1,19 @@
+{
+  "name": "industry-morning-brief",
+  "owner": {
+    "name": "产业朝闻"
+  },
+  "metadata": {
+    "description": "产业新闻抓取、核验、选题和135编辑器排版工具集"
+  },
+  "plugins": [
+    {
+      "name": "chanye-zaowen",
+      "source": "./plugins/chanye-zaowen",
+      "description": "制作产业朝闻：抓取核验五栏产业新闻，输出HTML、源码和来源核查表。",
+      "version": "1.2.0",
+      "category": "writing",
+      "tags": ["产业新闻", "新闻简报", "公众号", "135编辑器", "中文"]
+    }
+  ]
+}
