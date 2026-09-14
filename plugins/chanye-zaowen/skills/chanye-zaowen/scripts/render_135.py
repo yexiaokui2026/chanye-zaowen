@@ -6,6 +6,7 @@ from collections import Counter
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from pathlib import Path
+from normalize_layout import normalize_layout
 
 CATEGORY_ORDER = ["热点资讯", "国际资讯", "国内资讯", "企业动态", "宏观政策"]
 MINIMUM_COUNTS = dict(zip(CATEGORY_ORDER, (3, 3, 4, 6, 3)))
@@ -104,14 +105,21 @@ def validate_selection(items_by_category, publish_date=None):
             raise ValueError(f'{category}: {actual} items; minimum is {minimum}; no upper limit')
         for item in items:
             validate_item(category, item)
-            if publish_date and not is_in_default_window(item["published_at"], publish_date, allow_supplement=category != "宏观政策"):
+            macro_date = parse_news_time(item["published_at"]).date() if publish_date and category == "宏观政策" else None
+            if publish_date and macro_date is None and not is_in_default_window(item["published_at"], publish_date, allow_supplement=True):
                 expected = (publish_date - timedelta(days=1)).strftime("%Y-%m-%d")
                 raise ValueError(f"{category}《{item['title']}》发布时间超出默认窗口；默认目标新闻日为 {expected}")
-            if publish_date and category == "宏观政策":
-                macro_date = parse_news_time(item["published_at"]).date()
+            if macro_date is not None:
                 expected = (publish_date - timedelta(days=1)).date()
                 if macro_date != expected:
-                    raise ValueError(f"宏观政策《{item['title']}》必须使用目标新闻日 {expected} 的政策，不能使用更早日期")
+                    age = (expected - macro_date).days
+                    disclosed = item.get("official_source") is True and str(item.get("note") or "").strip()
+                    if not (0 < age <= 3 and disclosed):
+                        raise ValueError(
+                            f"宏观政策《{item['title']}》须为目标新闻日 {expected} 当天发布；"
+                            f"更早政策仅允许目标日前3日内、官网核验(official_source=true)且备注披露实际发布日期的补位"
+                        )
+                    print(f"[宏观补位披露] 《{item['title']}》实际发布 {macro_date}（目标新闻日 {expected} 前 {age} 天），官网已核验、备注已披露")
             all_items.append(item)
             url = str(item['url']).strip()
             host = (urlparse(url).hostname or '').lower()
@@ -204,6 +212,7 @@ def render_html(template, data, publish_date):
         raise ValueError("母版头图日期占位未找到或不唯一")
     for index, category in enumerate(CATEGORY_ORDER, start=1):
         output = replace_category_cards(output, index, items_by_category[category])
+    output = normalize_layout(output)
     if "auth_key" in output or "bexp.135editor.com" in output or "file:" in output:
         raise ValueError("输出仍含临时图片地址或本地路径")
     image_urls = re.findall(r'<img\b[^>]*\bsrc="(https?://[^"]+)"', output, re.I)
@@ -269,6 +278,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
