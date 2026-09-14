@@ -23,7 +23,7 @@
 
 ### WorkBuddy
 
-下载 `dist/chanye-zaowen-workbuddy-v1.2.0.zip`，在 WorkBuddy 的“添加技能”中导入这个 zip。压缩包内的顶层目录是 `chanye-zaowen/`，包含 `SKILL.md`、`references/`、`scripts/` 和 `assets/`。
+下载 `dist/chanye-zaowen-workbuddy-v1.2.3.zip`，在 WorkBuddy 的“添加技能”中导入这个 zip。压缩包内的顶层目录是 `chanye-zaowen/`，包含 `SKILL.md`、`references/`、`scripts/` 和 `assets/`。
 
 ### 其他支持通用 Skill 的 AI
 
@@ -38,7 +38,7 @@ skills/chanye-zaowen/
 WorkBuddy 导入包位于：
 
 ```text
-dist/chanye-zaowen-workbuddy-v1.2.0.zip
+dist/chanye-zaowen-workbuddy-v1.2.3.zip
 ```
 
 ## 本地测试
@@ -58,3 +58,4 @@ claude --plugin-dir ./plugins/chanye-zaowen
 硬性最低数量为：热点至少3条、国际至少3条、国内至少4条、企业至少6条、宏观至少3条；这些是最低数量，不是固定配额，也不是上限。
 
 企业动态优先纳入苹果、台积电、小米等大公司及其领导人的产业相关新闻。宏观政策必须核对官方网站；来源不能全部依赖财联社。
+

@@ -14,7 +14,7 @@ skills/chanye-zaowen/
 
 ## WorkBuddy
 
-下载 `dist/chanye-zaowen-workbuddy-v1.2.0.zip`，在 WorkBuddy 的“添加技能”中导入。导入包的顶层目录为 `chanye-zaowen/`。
+下载 `dist/chanye-zaowen-workbuddy-v1.2.3.zip`，在 WorkBuddy 的“添加技能”中导入。导入包的顶层目录为 `chanye-zaowen/`。
 
 ## Claude Code
 
