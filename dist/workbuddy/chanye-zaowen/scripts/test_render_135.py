@@ -16,7 +16,7 @@ class SelectionTests(unittest.TestCase):
             self.items[category] = [dict(
                 title=f'Story {index}-{n}', summary='Verified test fact.',
                 source='Test source', published_at='2026-09-08',
-                url=f'https://test.gov.cn/{index}/{n}', note='Test fixture')
+                url=f'https://source{index}.gov.cn/{index}/{n}', note='Test fixture')
                 for n in range(minimum)]
         self.template = (Path(__file__).parent.parent / 'assets' / '135-wechat-template.html').read_text(encoding='utf-8')
         self.date = r.parse_publish_date('2026-09-09')
@@ -103,3 +103,4 @@ class SelectionTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
